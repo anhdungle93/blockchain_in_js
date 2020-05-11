@@ -8,10 +8,10 @@ class Transaction {
   }
 }
 class Block {
-  constructor(index, timestamp, data, previousHash = '') {
+  constructor(index, timestamp, transactions, previousHash = '') {
     this.index = index;
     this.timestamp = timestamp;
-    this.data = data;
+    this.transactions = transactions;
     this.previousHash = previousHash;
     this.hash = this.calculateHash();
     this.nonce = 0;
@@ -34,6 +34,8 @@ class Blockchain{
   constructor(){
     this.chain = [this.createGenesisBlock];
     this.difficulty = 2;
+    this.pendingTransactions = [];
+    this.miningReward = 100;
   }
 
   createGenesisBlock(){
@@ -44,6 +46,17 @@ class Blockchain{
     return this.chain[this.chain.length - 1];
   }
 
+  minePendingTransactions(miningRewardAddress){
+    let block = new Block(Date.now(), this.pendingTransactions);
+    block.mineBlock(this.difficulty);
+
+    console.log('Block successfully mined!');
+    this.chain.push(block);
+
+    this.pendingTransactions = [
+      new Transaction(null, miningRewardAddress, this.miningReward)
+    ]
+  }
   addBlock(newBlock){
     newBlock.previousHash = this.getLatestBlock().hash;
     newBlock.mineBlock(this.difficulty);
