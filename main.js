@@ -8,8 +8,7 @@ class Transaction {
   }
 }
 class Block {
-  constructor(index, timestamp, transactions, previousHash = '') {
-    this.index = index;
+  constructor(timestamp, transactions, previousHash = '') {
     this.timestamp = timestamp;
     this.transactions = transactions;
     this.previousHash = previousHash;
@@ -32,7 +31,7 @@ class Block {
 
 class Blockchain{
   constructor(){
-    this.chain = [this.createGenesisBlock];
+    this.chain = [this.createGenesisBlock()];
     this.difficulty = 2;
     this.pendingTransactions = [];
     this.miningReward = 100;
@@ -57,6 +56,27 @@ class Blockchain{
       new Transaction(null, miningRewardAddress, this.miningReward)
     ]
   }
+
+  createTransaction(transaction){
+    this.pendingTransactions.push(transaction);
+  }
+
+  getBalanceOfAddress(address){
+    let balance = 0;
+    for (const block of this.chain){
+      for (const trans of block.transactions){
+        if (trans.fromAddress === address){
+          balance -= trans.amount;
+        }
+
+        if (trans.toAddress === address){
+          balance += trans.amount;
+        }
+      }
+    }
+
+    return balance
+  }
   addBlock(newBlock){
     newBlock.previousHash = this.getLatestBlock().hash;
     newBlock.mineBlock(this.difficulty);
@@ -65,5 +85,15 @@ class Blockchain{
 }
 
 let myCoin = new Blockchain;
-console.log("Adding 1st block ...")
-myCoin.addBlock(new Block(1, "07.05.2020", "First block", ""))
+myCoin.createTransaction(new Transaction('address1', 'address2', 100))
+myCoin.createTransaction(new Transaction('address2', 'address1', 50))
+
+console.log('\n Starting the miner...');
+myCoin.minePendingTransactions('minerAddress');
+
+console.log('\n Balance of miner is', myCoin.getBalanceOfAddress(('minerAddress')))
+
+console.log('\n Starting the miner again...');
+myCoin.minePendingTransactions('minerAddress');
+
+console.log('\n Balance of miner is', myCoin.getBalanceOfAddress(('minerAddress')))
